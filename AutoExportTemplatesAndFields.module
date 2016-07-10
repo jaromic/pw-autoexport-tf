@@ -1,0 +1,148 @@
+<?php
+
+class AutoExportTemplatesAndFields extends WireData implements Module, ConfigurableModule
+{
+    protected $changesDetected = false;
+
+    public static function getModuleInfo()
+    {
+        return array('title' => __('AutoExportTemplatesAndFields'),
+            'summary' => __('Automatic export of templates and fields'),
+            'version' => 100,
+            'singular' => true,
+            'autoload' => true
+        );
+    }
+
+    public function __construct() {
+        foreach(self::getDefaultConfig() as $key => $value) {
+            $this->$key = $value;
+        }
+    }
+
+    public function init()
+    {
+        // add the 'changes detected' hook to any method associated with
+        // template/field/fieldgroup modification:
+
+        $this->addHookAfter('Fields::saved', $this, 'hookSetChangesDetected');
+        $this->addHookAfter('Fields::added', $this, 'hookSetChangesDetected');
+        $this->addHookAfter('Fields::deleted', $this, 'hookSetChangesDetected');
+        $this->addHookAfter('Fields::changedType', $this, 'hookSetChangesDetected');
+
+        $this->addHookAfter('Fieldgroups::saved', $this, 'hookSetChangesDetected');
+        $this->addHookAfter('Fieldgroups::added', $this, 'hookSetChangesDetected');
+        $this->addHookAfter('Fieldgroups::deleted', $this, 'hookSetChangesDetected');
+        $this->addHookAfter('Fields::saveFieldgroupContext', $this, 'hookSetChangesDetected');
+
+        $this->addHookAfter('Templates::saved', $this, 'hookSetChangesDetected');
+        $this->addHookAfter('Templates::added', $this, 'hookSetChangesDetected');
+        $this->addHookAfter('Templates::deleted', $this, 'hookSetChangesDetected');
+
+        // make sure any modifications are eventually persisted:
+
+        $this->addHookAfter('ProcessPageView::finished', $this, 'hookPersistChanges');
+
+    }
+    
+    public function ready() {
+        $this->clearChangesDetected();
+    }
+
+    public function hookSetChangesDetected() {
+        $this->changesDetected = true;
+    }
+
+    public function hookPersistChanges() {
+        if($this->changesDetected) { // there were changes in template/field configuration, persist them
+            
+            // use default config if unset:
+            if(!isset($this->persistDirectory) || $this->persistDirectory=='') 
+                $this->persistDirectory = $this->getDefaultConfig()['persistDirectory'];
+
+            // make sure the data directory exists:
+            if (!file_exists($this->persistDirectory)) {
+                if(!mkdir($this->persistDirectory)) {
+                    $this->wire('session')->error("Could not create directory '".$this->persistDirectory."'.");
+                    return;
+                }
+            }
+
+            // build array with file names and export data:
+            $exportData=array( 
+                'fields.json' => $this->getFieldData(),
+                'fieldgroups.json' => $this->getFieldGroupData(),
+                'templates.json' => $this->getTemplateData()
+                );
+
+            // write each file:
+            $hasErrors=false;
+            foreach($exportData as $filename => $data) {
+                if(FALSE === file_put_contents($this->persistDirectory . DIRECTORY_SEPARATOR . $filename, 
+                                                wireEncodeJSON($data, true, true))) {
+                    $this->wire('session')->error("Could not persist data to '$filename'.");
+                    $hasErrors=true;
+                }
+            }
+
+            if(!$hasErrors) {
+                $this->wire('session')->message(_("Field/Template configuration has been persisted to") . " '" . $this->persistDirectory . "'.");
+            }
+        }
+    }
+    
+    private function clearChangesDetected() {
+        $this->changesDetected = false;
+    }
+
+    private function getFieldData() {
+		$data = array();
+		foreach($this->wire('fields') as $field) {
+			$data[$field->name] = $field->getExportData();
+		}
+		return $data; 
+    }
+    
+    private function getFieldGroupData() {
+		$data = array();
+		foreach($this->wire('fieldgroups') as $fieldgroup) {
+			$data[$fieldgroup->name] = $fieldgroup->getExportData();
+		}
+		return $data; 
+    }
+
+    private function getTemplateData() {
+		$data = array();
+		foreach($this->wire('templates') as $template) {
+			$data[$template->name] = $template->getExportData();
+		}
+		return $data; 
+    }
+
+    static public function getModuleConfigInputfields(array $data) {
+
+        $fields = new InputfieldWrapper();
+        $modules = Wire::getFuel('modules');
+
+        // use default config for each unset config field:
+        foreach(self::getDefaultConfig() as $key => $value) {
+            if(!isset($data[$key]) || $data[$key]=='') $data[$key] = $value;
+        }
+
+        $field = $modules->get("InputfieldText");
+        $field->attr('name', 'persistDirectory');
+        $field->label = __("Persist directory", __FILE__);
+        $field->description = __("Specify a directory to automatically persist field/template changes in.", __FILE__);
+        $field->value = $data['persistDirectory'];
+        $fields->append($field);
+
+        return $fields;
+    }
+
+    static public function getDefaultConfig() {
+        return array(
+            'persistDirectory' => Wire::getFuel('config')->paths->templates . 'auto_export',
+        );
+    }
+
+}
