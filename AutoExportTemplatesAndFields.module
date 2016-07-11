@@ -3,6 +3,7 @@
 class AutoExportTemplatesAndFields extends WireData implements Module, ConfigurableModule
 {
     protected $changesDetected = false;
+    protected $exportDisabled = false;
 
     public static function getModuleInfo()
     {
@@ -50,7 +51,13 @@ class AutoExportTemplatesAndFields extends WireData implements Module, Configura
     }
 
     public function hookSetChangesDetected() {
-        $this->changesDetected = true;
+        if(!$this->exportDisabled) {
+            $this->changesDetected = true;
+        }
+    }
+    
+    public function setExportDisabled($value) {
+        $this->exportDisabled = $value;
     }
 
     public function hookPersistChanges() {
