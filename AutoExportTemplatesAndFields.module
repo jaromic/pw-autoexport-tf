@@ -55,13 +55,20 @@ class AutoExportTemplatesAndFields extends WireData implements Module, Configura
             $this->changesDetected = true;
         }
     }
-    
-    public function setExportDisabled($value) {
+ 
+    /**
+     * disable or re-enable detection of changes to fields/templates
+     * (this is currently used by the import script to prevent exporting
+     * changes that have just been imported)
+     * @param boolean
+     */  
+    public function setExportDisabled(bool $value) {
         $this->exportDisabled = $value;
     }
 
     public function hookPersistChanges() {
-        if($this->changesDetected) { // there were changes in template/field configuration, persist them
+        if($this->changesDetected) { 
+            // there were changes in template/field configuration, persist them:
             
             // use default config if unset:
             if(!isset($this->persistDirectory) || $this->persistDirectory=='') 
@@ -97,35 +104,11 @@ class AutoExportTemplatesAndFields extends WireData implements Module, Configura
             }
         }
     }
-    
-    private function clearChangesDetected() {
-        $this->changesDetected = false;
-    }
 
-    private function getFieldData() {
-		$data = array();
-		foreach($this->wire('fields') as $field) {
-			$data[$field->name] = $field->getExportData();
-		}
-		return $data; 
-    }
-    
-    private function getFieldGroupData() {
-		$data = array();
-		foreach($this->wire('fieldgroups') as $fieldgroup) {
-			$data[$fieldgroup->name] = $fieldgroup->getExportData();
-		}
-		return $data; 
-    }
-
-    private function getTemplateData() {
-		$data = array();
-		foreach($this->wire('templates') as $template) {
-			$data[$template->name] = $template->getExportData();
-		}
-		return $data; 
-    }
-
+    /**
+     * provides input fields for configuration of this module
+     * @return InputfieldWrapper
+     */
     static public function getModuleConfigInputfields(array $data) {
 
         $fields = new InputfieldWrapper();
@@ -146,10 +129,50 @@ class AutoExportTemplatesAndFields extends WireData implements Module, Configura
         return $fields;
     }
 
+    /**
+     * provides default configuration values
+     * @return array of key => value pairs
+     */
     static public function getDefaultConfig() {
         return array(
             'persistDirectory' => Wire::getFuel('config')->paths->templates . 'auto_export',
         );
     }
+    
+    private function clearChangesDetected() {
+        $this->changesDetected = false;
+    }
 
+    /**
+     * @return array;
+     */
+    private function getFieldData() {
+		$data = array();
+		foreach($this->wire('fields') as $field) {
+			$data[$field->name] = $field->getExportData();
+		}
+		return $data; 
+    }
+    
+    /**
+     * @return array;
+     */
+    private function getFieldGroupData() {
+		$data = array();
+		foreach($this->wire('fieldgroups') as $fieldgroup) {
+			$data[$fieldgroup->name] = $fieldgroup->getExportData();
+		}
+		return $data; 
+    }
+
+    /**
+     * @return array;
+     */
+    private function getTemplateData() {
+		$data = array();
+		foreach($this->wire('templates') as $template) {
+			$data[$template->name] = $template->getExportData();
+		}
+		return $data; 
+    }
 }
