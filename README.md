@@ -12,7 +12,7 @@ of your ProcessWire installation, so that directory should look like this:
       ...
 
 ## Usage
-### Auto-Export during 
+### Automatic export when changing fields/templates
 
 After installing the module, all changes to fields, fieldgroups, and templates
 are automatically exported after the respective request to the directory
