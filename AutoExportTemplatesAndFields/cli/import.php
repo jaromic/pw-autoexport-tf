@@ -2,12 +2,31 @@
 <?php
 
 function main($argc, $argv) {
-    
+
     // bootstrap ProcessWire:
     require_once(__DIR__ . "/../../../../index.php");
+    global $log;
+	$log = Wire::getFuel('log');
 
-    // do the import:
-    importAll();
+    // handle command line:
+    $options=getopt('r:i',array('restore:','import'));
+    
+    if(array_key_exists('i', $options) or array_key_exists('import', $options)) {
+        // do the import:
+        importAll();
+    } elseif( (array_key_exists('r', $options) and $restorePath = $options['r']) or 
+              (array_key_exists('restore', $options) and $restorePath = $options['restore'])
+              ) {
+       out("Restoring from '$restorePath'...");
+       restoreDB($restorePath);
+    } else {
+        usage();
+    }
+}
+
+function usage() {
+    global $argv;
+    echo "usage: " . $argv[0] . " [ -i | --import ] [ -r <path> | --restore <path> ]" ;
 }
 
 function out($msg) {
@@ -25,9 +44,23 @@ function backupDB($backupPath) {
     $db = Wire::getFuel('database');
     $backup = $db->backups();
     $file = $backup->backup();
-    if($file) print_r($backup->notes()); 
-      else print_r($backup->errors()); 
-     return $file; 
+    if($file) {
+        print_r($backup->notes()); 
+        out("Database restored successfully.");
+    } else 
+        print_r($backup->errors()); 
+    return $file; 
+}
+
+function restoreDB($restorePath) {
+    $db = Wire::getFuel('database');
+    $backup = $db->backups();
+    $success = $backup->restore($restorePath); 
+    if($success) {
+        print_r($backup->notes()); 
+        out("Database restored successfully.");
+    } else 
+        print_r($backup->errors()); 
 }
 
 /**
@@ -51,7 +84,6 @@ function importData($directory, $filename) {
  */
 function importAll() {
     global $log;
-	$log = Wire::getFuel('log');
     $modules = Wire::getFuel('modules');
 
     $moduleName = 'AutoExportTemplatesAndFields';
