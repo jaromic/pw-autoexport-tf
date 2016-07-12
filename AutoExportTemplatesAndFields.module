@@ -62,7 +62,7 @@ class AutoExportTemplatesAndFields extends WireData implements Module, Configura
      * changes that have just been imported)
      * @param boolean
      */  
-    public function setExportDisabled(bool $value) {
+    public function setExportDisabled($value) {
         $this->exportDisabled = $value;
     }
 
