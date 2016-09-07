@@ -6,17 +6,17 @@ of your ProcessWire installation, so that directory should look like this:
 
     site/modules/
       AutoExportTemplatesAndFields/
+        AutoExportTemplatesAndFields.module
         cli/
            import.php
-      AutoExportTemplatesAndFields.module
       ...
 
 ## Usage
 ### Automatic export when changing fields/templates
 
-After installing the module, all changes to fields, fieldgroups, and templates
-are automatically exported after the respective request to the directory
-specified via the module's persistDirectory setting.
+After installing the module, all changes to fields and templates are
+automatically exported after the respective request to the directory specified
+via the module's persistDirectory setting.
 
 ### Import via command line
 
