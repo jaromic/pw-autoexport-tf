@@ -11,9 +11,21 @@ function main() {
     // bootstrap ProcessWire:
     require_once(__DIR__ . "/../../../../index.php");
 
+    // assign method pointer depending on namespace status of ProcessWire:
+    global $getFuel;
+    if(class_exists('\ProcessWire\Wire')) {
+    	echo("Namespaced PW detected.");
+        $getFuel = "Wire::getFuel";
+    } else {
+    	echo("Non-Namespaced PW detected.");
+        $getFuel = "\Wire::getFuel";
+    }
+
+
     // initialize logging:
     global $log;
-	$log = Wire::getFuel('log');
+
+    $log = getFuel('log');
 
     // handle command line and invoke functionality accordingly:
     
@@ -37,6 +49,12 @@ function main() {
         exit(1);
     }
 }
+
+function getFuel($arg) {
+    global $getFuel;
+    return call_user_func($getFuel, $arg);
+}    
+
 
 /**
  * outputs usage message
@@ -71,7 +89,7 @@ function err($msg) {
  * @param $backupPath
  */
 function backupDB($backupPath) {
-    $db = Wire::getFuel('database');
+    $db = getFuel('database');
     $backup = $db->backups();
     $file = $backup->backup();
     if($file) {
@@ -86,7 +104,7 @@ function backupDB($backupPath) {
  * @param $restorePath
  */
 function restoreDB($restorePath) {
-    $db = Wire::getFuel('database');
+    $db = getFuel('database');
     $backup = $db->backups();
     $success = $backup->restore($restorePath); 
     if(!$success) {
@@ -115,7 +133,8 @@ function readAndDecodeData($directory, $filename) {
  */
 function importAll() {
     global $log;
-    $modules = Wire::getFuel('modules');
+
+    $modules = getFuel('modules');
 
     // get AutoExportTemplatesAndFields module:
     $moduleName = 'AutoExportTemplatesAndFields';
@@ -144,11 +163,11 @@ function importAll() {
     // define which collection object and object class to use for import of each file:
     $importFunctionality = array (
             'fields.json' => array(
-                'collectionObject' => Wire::getFuel('fields'), 
+                'collectionObject' => getFuel('fields'), 
                 'exportableClassName' => 'Field', 
             ),
             'templates.json' => array(
-                'collectionObject' => Wire::getFuel('templates'), 
+                'collectionObject' => getFuel('templates'), 
                 'exportableClassName' => 'Template', 
             ),
     );
@@ -183,7 +202,7 @@ function importAll() {
 function importGeneralData($collectionObject, $exportableClassName, array $collectionData) {
     global $log;
 
-    $sanitizer = Wire::getFuel('sanitizer');
+    $sanitizer = getFuel('sanitizer');
 
     // loop through each item of the collection:
     foreach($collectionData as $name => $data) {
