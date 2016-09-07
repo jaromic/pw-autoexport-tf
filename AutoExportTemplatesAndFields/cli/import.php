@@ -145,10 +145,6 @@ function importAll() {
                 'collectionObject' => Wire::getFuel('fields'), 
                 'exportableClassName' => 'Field', 
             ),
-            'fieldgroups.json' => array(
-                'collectionObject' => Wire::getFuel('fieldgroups'), 
-                'exportableClassName' => 'FieldGroup', 
-            ),
             'templates.json' => array(
                 'collectionObject' => Wire::getFuel('templates'), 
                 'exportableClassName' => 'Template', 

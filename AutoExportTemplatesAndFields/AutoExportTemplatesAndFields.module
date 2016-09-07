@@ -85,7 +85,6 @@ class AutoExportTemplatesAndFields extends WireData implements Module, Configura
             // build array with file names and export data:
             $exportData=array( 
                 'fields.json' => $this->getFieldData(),
-                'fieldgroups.json' => $this->getFieldGroupData(),
                 'templates.json' => $this->getTemplateData()
                 );
 
@@ -154,17 +153,6 @@ class AutoExportTemplatesAndFields extends WireData implements Module, Configura
 		return $data; 
     }
     
-    /**
-     * @return array;
-     */
-    private function getFieldGroupData() {
-		$data = array();
-		foreach($this->wire('fieldgroups') as $fieldgroup) {
-			$data[$fieldgroup->name] = $fieldgroup->getExportData();
-		}
-		return $data; 
-    }
-
     /**
      * @return array;
      */
