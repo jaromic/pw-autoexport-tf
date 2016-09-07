@@ -15,13 +15,13 @@ function main() {
     }
 
     // assign method pointer depending on namespace status of ProcessWire:
-    global $getFuel;
+    global $namespacePrefix;
     if(class_exists('\ProcessWire\Wire')) {
     	echo("Namespaced PW detected.\n");
-        $getFuel = "\ProcessWire\Wire::getFuel";
+        $namespacePrefix = "\ProcessWire\\";
     } else {
     	echo("Non-Namespaced PW detected.\n");
-        $getFuel = "\Wire::getFuel";
+        $namespacePrefix = "\\";
     }
 
 
@@ -54,8 +54,8 @@ function main() {
 }
 
 function getFuel($arg) {
-    global $getFuel;
-    return call_user_func($getFuel, $arg);
+    global $namespacePrefix;
+    return call_user_func($namespacePrefix . "Wire::getFuel", $arg);
 }    
 
 
@@ -164,14 +164,15 @@ function importAll() {
     $module->setExportDisabled(true);
 
     // define which collection object and object class to use for import of each file:
+    global $namespacePrefix;
     $importFunctionality = array (
             'fields.json' => array(
                 'collectionObject' => getFuel('fields'), 
-                'exportableClassName' => 'Field', 
+                'exportableClassName' => "${namespacePrefix}Field", 
             ),
             'templates.json' => array(
                 'collectionObject' => getFuel('templates'), 
-                'exportableClassName' => 'Template', 
+                'exportableClassName' => "${namespacePrefix}Template", 
             ),
     );
 
@@ -225,7 +226,8 @@ function importGeneralData($collectionObject, $exportableClassName, array $colle
         $object->setImportData($data);
 
         // persist the object so it survives this invocation:
-        if($exportableClassName=='Template') {
+        global $namespacePrefix;
+        if($exportableClassName=="${namespacePrefix}Template") {
             // special handling for templates: fieldgroups have to be saved
             // first (code borrowed from
             // ProcessTemplateExportImport::saveItem()):
