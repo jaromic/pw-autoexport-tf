@@ -1,6 +1,8 @@
 #!/usr/bin/php
 <?php
 
+namespace ProcessWire;
+
 /**
  * entry point
  */
