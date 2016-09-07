@@ -11,7 +11,7 @@ class AutoExportTemplatesAndFields extends WireData implements Module, Configura
     {
         return array('title' => __('AutoExportTemplatesAndFields'),
             'summary' => __('Automatic export of templates and fields'),
-            'version' => 100,
+            'version' => 101,
             'singular' => true,
             'autoload' => true
         );

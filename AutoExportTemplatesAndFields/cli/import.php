@@ -14,7 +14,7 @@ function main() {
         die("Include failed: $requireProcessWire");
     }
 
-    // assign method pointer depending on namespace status of ProcessWire:
+    // assign namespace prefix depending on namespace status of ProcessWire:
     global $namespacePrefix;
     if(class_exists('\ProcessWire\Wire')) {
     	echo("Namespaced PW detected.\n");
