@@ -1,5 +1,7 @@
 <?php
 
+namespace ProcessWire;
+
 class AutoExportTemplatesAndFields extends WireData implements Module, ConfigurableModule
 {
     protected $changesDetected = false;
