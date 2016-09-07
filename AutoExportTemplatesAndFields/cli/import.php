@@ -9,15 +9,18 @@ namespace ProcessWire;
 function main() {
 
     // bootstrap ProcessWire:
-    require_once(__DIR__ . "/../../../../index.php");
+    $requireProcessWire=("index.php");
+    if(!require_once ($requireProcessWire)) {
+        die("Include failed: $requireProcessWire");
+    }
 
     // assign method pointer depending on namespace status of ProcessWire:
     global $getFuel;
     if(class_exists('\ProcessWire\Wire')) {
-    	echo("Namespaced PW detected.");
-        $getFuel = "Wire::getFuel";
+    	echo("Namespaced PW detected.\n");
+        $getFuel = "\ProcessWire\Wire::getFuel";
     } else {
-    	echo("Non-Namespaced PW detected.");
+    	echo("Non-Namespaced PW detected.\n");
         $getFuel = "\Wire::getFuel";
     }
 
