@@ -101,7 +101,7 @@ class AutoExportTemplatesAndFields extends WireData implements Module, Configura
             }
 
             if(!$hasErrors) {
-                $this->wire('session')->message(_("Field/Template configuration has been persisted to") . " '" . $this->persistDirectory . "'.");
+                $this->wire('session')->message(__("Field/Template configuration has been persisted to") . " '" . $this->persistDirectory . "'.");
             }
         }
     }
