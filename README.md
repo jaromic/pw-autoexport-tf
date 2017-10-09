@@ -31,10 +31,17 @@ The import automatically creates a database backup which can be restored using:
 
     php site\modules\AutoExportTemplatesAndFields\cli\import.php --restore <path>
 
+### BUGS
+
+ * (#1) This module does not seem to work well together with ProFields or when using
+repeater fields. See this forum thread:
+
+  https://processwire.com/talk/topic/13758-autoexporttemplatesandfields-enables-continuous-integration-of-template-and-field-configuration-changes/
+
 ## Contact
 
 I am looking forward to hearing from you: Contact me
-<michael.jaros@jarosoft.at> for any issues or suggestions regarding this module
+<michael.jaros@foxcraft.at> for any issues or suggestions regarding this module
 or just drop an issue on github: 
 
-    https://github.com/jaromic/pw-autoexport-tf/issues
+  https://github.com/jaromic/pw-autoexport-tf/issues
