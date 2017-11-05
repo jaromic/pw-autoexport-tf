@@ -1,0 +1,35 @@
+<?php
+
+namespace ProcessWire;
+
+class BreakRepeaterFields extends WireData implements Module, ConfigurableModule
+{
+
+    public static function getModuleInfo()
+    {
+        return array('title' => __('BreakRepeaterFields'),
+            'summary' => __('Showcase of code breaking repeater fields by calling getExportData. You need to create two repeater fields rep1 and rep2 and two text fields text1 and text2. Install this module, then try adding text1 to rep1 and text2 to rep2.'),
+            'version' => 101,
+            'singular' => true,
+            'autoload' => true
+        );
+    }
+
+    public function init()
+    {
+        $this->addHookAfter('ProcessPageView::finished', $this, 'hookProcessPageViewFinished');
+    }
+    
+    public function hookProcessPageViewFinished() {
+        $proc="";
+		foreach($this->wire('fields') as $field) {
+
+            if($field->name=='rep1'||$field->name=='rep2') {
+                $proc.=$field->name.", ";
+                $field->getExportData();
+            }
+		}
+        $this->wire('session')->message("processed: ".$proc);
+
+    }
+}

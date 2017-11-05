@@ -1,6 +1,8 @@
 # pw-autoexport-tf - AutoExportTemplatesAndFields module for ProcessWire
 ## Installation
 
+CAUTION: This module is not compatible with repeater fields or ProFields. See BUGS.
+
 To install this module manually, simply put it into the site/modules directory
 of your ProcessWire installation, so that directory should look like this:
 
@@ -33,10 +35,11 @@ The import automatically creates a database backup which can be restored using:
 
 ### BUGS
 
- * (#1) This module does not seem to work well together with ProFields or when using
-repeater fields. See this forum thread:
+ * (#1) This module is not compatible with repeater fields or ProFields. See this forum thread:
 
   https://processwire.com/talk/topic/13758-autoexporttemplatesandfields-enables-continuous-integration-of-template-and-field-configuration-changes/
+
+  The BreakRepeaterFields module is included in the repository as a minimal showcase of what is breaking the repeater fields.
 
 ## Contact
 
