@@ -6,6 +6,9 @@ class AutoExportTemplatesAndFields extends WireData implements Module, Configura
 {
     protected $changesDetected = false;
     protected $exportDisabled = false;
+    static $incompatibleFieldtypesBlacklist = Array(
+        "FieldtypeRepeater"
+    );
 
     public static function getModuleInfo()
     {
@@ -47,7 +50,7 @@ class AutoExportTemplatesAndFields extends WireData implements Module, Configura
         $this->addHookAfter('ProcessPageView::finished', $this, 'hookPersistChanges');
 
     }
-    
+
     public function ready() {
         $this->clearChangesDetected();
     }
@@ -57,23 +60,23 @@ class AutoExportTemplatesAndFields extends WireData implements Module, Configura
             $this->changesDetected = true;
         }
     }
- 
+
     /**
      * disable or re-enable detection of changes to fields/templates
      * (this is currently used by the import script to prevent exporting
      * changes that have just been imported)
      * @param boolean
-     */  
+     */
     public function setExportDisabled($value) {
         $this->exportDisabled = $value;
     }
 
     public function hookPersistChanges() {
-        if($this->changesDetected) { 
+        if($this->changesDetected) {
             // there were changes in template/field configuration, persist them:
-            
+
             // use default config if unset:
-            if(!isset($this->persistDirectory) || $this->persistDirectory=='') 
+            if(!isset($this->persistDirectory) || $this->persistDirectory=='')
                 $this->persistDirectory = $this->getDefaultConfig()['persistDirectory'];
 
             // make sure the data directory exists:
@@ -85,7 +88,7 @@ class AutoExportTemplatesAndFields extends WireData implements Module, Configura
             }
 
             // build array with file names and export data:
-            $exportData=array( 
+            $exportData=array(
                 'fields.json' => $this->getFieldData(),
                 'templates.json' => $this->getTemplateData()
                 );
@@ -93,14 +96,16 @@ class AutoExportTemplatesAndFields extends WireData implements Module, Configura
             // write each file:
             $hasErrors=false;
             foreach($exportData as $filename => $data) {
-                if(FALSE === file_put_contents($this->persistDirectory . DIRECTORY_SEPARATOR . $filename, 
-                                                wireEncodeJSON($data, true, true))) {
+                if(empty($data) || (FALSE === file_put_contents($this->persistDirectory . DIRECTORY_SEPARATOR . $filename,
+                                                wireEncodeJSON($data, true, true)))) {
                     $this->wire('session')->error("Could not persist data to '$filename'.");
                     $hasErrors=true;
                 }
             }
 
-            if(!$hasErrors) {
+            if($hasErrors) {
+                    $this->wire('session')->error("Export of field/template configuration is incomplete.");
+            } else {
                 $this->wire('session')->message(__("Field/Template configuration has been persisted to") . " '" . $this->persistDirectory . "'.");
             }
         }
@@ -139,7 +144,7 @@ class AutoExportTemplatesAndFields extends WireData implements Module, Configura
             'persistDirectory' => Wire::getFuel('config')->paths->templates . 'auto_export',
         );
     }
-    
+
     private function clearChangesDetected() {
         $this->changesDetected = false;
     }
@@ -148,21 +153,30 @@ class AutoExportTemplatesAndFields extends WireData implements Module, Configura
      * @return array;
      */
     private function getFieldData() {
-		$data = array();
-		foreach($this->wire('fields') as $field) {
-			$data[$field->name] = $field->getExportData();
-		}
-		return $data; 
+        $data = array();
+        foreach($this->wire('fields') as $field) {
+            if(in_array($field->type, self::$incompatibleFieldtypesBlacklist)) {
+                $this->wire('session')->error(
+                    self::getModuleInfo()['title'] .
+                    ": At least one incompatible fieldtype is in use. This module is known to be incompatible with the following fieldtypes: " .
+                    implode(", ", self::$incompatibleFieldtypesBlacklist)
+                );
+                return array();
+            }
+
+            $data[$field->name] = $field->getExportData();
+        }
+        return $data;
     }
-    
+
     /**
      * @return array;
      */
     private function getTemplateData() {
-		$data = array();
-		foreach($this->wire('templates') as $template) {
-			$data[$template->name] = $template->getExportData();
-		}
-		return $data; 
+        $data = array();
+        foreach($this->wire('templates') as $template) {
+            $data[$template->name] = $template->getExportData();
+        }
+        return $data;
     }
 }
